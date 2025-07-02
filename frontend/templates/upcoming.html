@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Upcoming Campaigns</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Upcoming Campaigns</h1>
+    <ul>
+        {% for campaign in campaigns %}
+            <li>{{ campaign.name }} - {{ campaign.date }}</li>
+        {% else %}
+            <li>No campaigns yet.</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('register_campaign') }}">Register New Campaign</a><br>
+    <a href="{{ url_for('register_for_campaign') }}">Register For Campaign</a>
+</body>
+</html>
