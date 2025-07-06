@@ -3,8 +3,8 @@ import requests
 
 app = Flask(__name__)
 
-CAMPAIGN_SERVICE_URL = "http://localhost:5001"
-REGISTRATION_SERVICE_URL = "http://localhost:5002"
+CAMPAIGN_SERVICE_URL = "http://camp:5001"
+REGISTRATION_SERVICE_URL = "http://reg:5002"
 
 @app.route('/')
 def upcoming_campaigns():
@@ -34,4 +34,4 @@ def register_for_campaign():
     return render_template("register_for_campaign.html", campaigns=campaigns)
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(host="0.0.0.0", port=5000)
