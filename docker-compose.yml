@@ -1,0 +1,24 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - camp
+      - reg
+
+  camp:
+    build:
+      context: ./campaign_service
+    ports:
+      - "5001:5001"
+
+  reg:
+    build:
+      context: ./registration_service
+    ports:
+      - "5002:5002"
+networks:
+  my-app:
+    driver: bridge
