@@ -2,13 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'DOCKER_TAG', defaultValue: 'latest', description: 'Docker image tag for the build and deployment')
-    }
-
-    environment {
-        CONTAINER_NAME = 'campify-frontend'
-        NETWORK_NAME = 'campify-network'
-        IMAGE_NAME = "frontend"
+        string(name: 'DOCKER_TAG', defaultValue: 'latest', description: 'Setting Docker Image tag for push')
     }
 
     stages {
@@ -16,7 +10,7 @@ pipeline {
             steps {
                 script {
                     if (params.DOCKER_TAG.trim() == '') {
-                        error('Docker tag must be provided.')
+                        error('Docker tag must be provided')
                     }
                 }
             }
@@ -31,7 +25,7 @@ pipeline {
         stage('Docker Image Build') {
             steps {
                 dir('frontend') {
-                    bat "docker build -t %IMAGE_NAME%:${params.DOCKER_TAG} ."
+                    bat "docker build -t frontend:${params.DOCKER_TAG} ."
                 }
             }
         }
@@ -44,43 +38,15 @@ pipeline {
                         usernameVariable: 'Dockerhubuser',
                         passwordVariable: 'Dockerhubpass'
                     )]) {
-                        bat "docker image tag %IMAGE_NAME%:${params.DOCKER_TAG} %Dockerhubuser%/campify-frontend:${params.DOCKER_TAG}"
+                        // Tag image
+                        bat "docker image tag frontend:${params.DOCKER_TAG} %Dockerhubuser%/campify-frontend:${params.DOCKER_TAG}"
+
+                        // Login to DockerHub
                         bat "docker login -u %Dockerhubuser% -p %Dockerhubpass%"
+
+                        // Push image
                         bat "docker push %Dockerhubuser%/campify-frontend:${params.DOCKER_TAG}"
                     }
-                }
-            }
-        }
-
-        stage('Create Docker Network if Not Exists') {
-            steps {
-                bat """
-                docker network ls | findstr /I %NETWORK_NAME% >nul
-                if errorlevel 1 (
-                    echo Creating network: %NETWORK_NAME%
-                    docker network create %NETWORK_NAME%
-                ) else (
-                    echo Network '%NETWORK_NAME%' already exists.
-                )
-                """
-            }
-        }
-
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    bat """
-                    docker ps -a --format "{{.Names}}" | findstr /I %CONTAINER_NAME% >nul
-                    if not errorlevel 1 (
-                        echo Removing existing container: %CONTAINER_NAME%
-                        docker stop %CONTAINER_NAME%
-                        docker rm %CONTAINER_NAME%
-                    ) else (
-                        echo No existing container named '%CONTAINER_NAME%' found.
-                    )
-
-                    docker run -d --name %CONTAINER_NAME% --network %NETWORK_NAME% -p 5000:5000 %Dockerhubuser%/campify-frontend:${params.DOCKER_TAG}
-                    """
                 }
             }
         }
