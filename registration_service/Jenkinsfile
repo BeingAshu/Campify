@@ -1,0 +1,55 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(name: 'DOCKER_TAG', defaultValue: 'latest', description: 'Setting Docker Image tag for push')
+    }
+
+    stages {
+        stage('Validate Parameters') {
+            steps {
+                script {
+                    if (params.DOCKER_TAG.trim() == '') {
+                        error('Docker tag must be provided')
+                    }
+                }
+            }
+        }
+
+        stage('Code Checkout') {
+            steps {
+                git branch: 'Windows', url: 'https://github.com/BeingAshu/Campify.git'
+            }
+        }
+
+        stage('Docker Image Build') {
+            steps {
+                dir('registration_service') {
+                    // Use double quotes here, escaping them inside the Groovy string
+                    bat "docker build -t registration_service:${params.DOCKER_TAG} ."
+                }
+            }
+        }
+
+        stage('Docker Push to DockerHub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub',
+                        usernameVariable: 'Dockerhubuser',
+                        passwordVariable: 'Dockerhubpass'
+                    )]) {
+                        // Tag image
+                        bat "docker image tag registration_service:${params.DOCKER_TAG} %Dockerhubuser%/campify-registration_service:${params.DOCKER_TAG}"
+
+                        // Login to DockerHub (password passed inline - less secure but Windows requires this)
+                        bat "docker login -u %Dockerhubuser% -p %Dockerhubpass%"
+
+                        // Push image
+                        bat "docker push %Dockerhubuser%/campify-registration_service:${params.DOCKER_TAG}"
+                    }
+                }
+            }
+        }
+    }
+}
