@@ -49,7 +49,7 @@ pipeline {
         stage('Run Container on Docker Network') {
             steps {
                 script {
-                    def containerName = "frontend"
+                    def containerName = "campify-frontend"
                     def networkName = "campify"
 
                     // Create Docker network if not exists
