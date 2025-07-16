@@ -46,7 +46,7 @@ pipeline {
                         bat "docker login -u %Dockerhubuser% -p %Dockerhubpass%"
 
                         // Push image
-                        bat "docker push %Dockerhubuser%/project-campify:${params.DOCKER_TAG}"
+                        bat "docker push %Dockerhubuser%/campify-frontend:${params.DOCKER_TAG}"
                     }
                 }
             }
