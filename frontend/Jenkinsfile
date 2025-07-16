@@ -25,7 +25,6 @@ pipeline {
         stage('Docker Image Build') {
             steps {
                 dir('frontend') {
-                    // Use double quotes here, escaping them inside the Groovy string
                     bat "docker build -t frontend:${params.DOCKER_TAG} ."
                 }
             }
@@ -39,15 +38,37 @@ pipeline {
                         usernameVariable: 'Dockerhubuser',
                         passwordVariable: 'Dockerhubpass'
                     )]) {
-                        // Tag image
                         bat "docker image tag frontend:${params.DOCKER_TAG} %Dockerhubuser%/campify-frontend:${params.DOCKER_TAG}"
-
-                        // Login to DockerHub (password passed inline - less secure but Windows requires this)
                         bat "docker login -u %Dockerhubuser% -p %Dockerhubpass%"
-
-                        // Push image
                         bat "docker push %Dockerhubuser%/campify-frontend:${params.DOCKER_TAG}"
                     }
+                }
+            }
+        }
+
+        stage('Run Container on Docker Network') {
+            steps {
+                script {
+                    def containerName = "frontend"
+                    def networkName = "campify"
+
+                    // Create Docker network if not exists
+                    bat """
+                        docker network ls | findstr /I "%networkName%" || docker network create %networkName%
+                    """
+
+                    // Stop and remove existing container if it exists
+                    bat """
+                        docker ps -a -q --filter "name=%containerName%" | findstr . && (
+                            docker stop %containerName%
+                            docker rm %containerName%
+                        ) || echo No existing container to remove
+                    """
+
+                    // Run new container
+                    bat """
+                        docker run -d --name %containerName% --network %networkName% -p 5000:5000 %Dockerhubuser%/campify-frontend:${params.DOCKER_TAG}
+                    """
                 }
             }
         }
