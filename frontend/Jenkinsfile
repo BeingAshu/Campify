@@ -1,0 +1,53 @@
+pipeline{
+    agent any 
+
+    parameters{
+        string(name: "DOCKER_TAG", default: "latest", description: "Setting Docker Image for latest push")
+
+    }
+
+    stages{
+        stage("Validate Parameters"){
+            steps{
+                script{
+                    if(params.DOCKER_TAG == " "){
+                        error("Docker tag must be provided")
+                    }
+                }
+            }
+
+        }
+        stage("code checkout"){
+            steps{
+                git branch: 'main', url: 'https://github.com/BeingAshu/Campify.git'
+            }
+        }
+
+        stage("Docker image build"){
+            steps{
+                dir("frontend"){
+                    sh "docker build -t frontend:${params.DOCKER_TAG} ."
+                }
+            }
+        }
+
+        stage("Docker Push to DockerHub"){
+            steps{
+                script{
+                    withCredentials(
+                        [usernamePassword(
+                            credentialsId:"dockerhub"
+                            passwordVariable:"Dockerhubpass"
+                            usernameVariable:"Dockerhubuser"
+                        )]
+                    )
+                    {
+                        sh "docker image tag frontend:${params.DOCKER_TAG} ${env.Dockerhubuser}/project-campify:${params.DOCKER_TAG}"
+                        sh "docker login -u ${env.Dockerhubuser} -p ${env.Dockerhubpass}"
+                        sh "docker push ${env.Dockerhubuser}/project-campify:${params.DOCKER_TAG}"
+                    }
+                }
+            }
+        }
+    }
+}
