@@ -40,7 +40,7 @@ pipeline {
                         passwordVariable: 'Dockerhubpass'
                     )]) {
                         // Tag image
-                        bat "docker image tag frontend:${params.DOCKER_TAG} %Dockerhubuser%/project-campify:${params.DOCKER_TAG}"
+                        bat "docker image tag frontend:${params.DOCKER_TAG} %Dockerhubuser%/project-campify:frontend:${params.DOCKER_TAG}"
 
                         // Login to DockerHub (password passed inline - less secure but Windows requires this)
                         bat "docker login -u %Dockerhubuser% -p %Dockerhubpass%"
