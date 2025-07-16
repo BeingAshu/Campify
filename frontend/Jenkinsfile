@@ -18,7 +18,7 @@ pipeline {
 
         stage('Code Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/BeingAshu/Campify.git'
+                git branch: 'Windows', url: 'https://github.com/BeingAshu/Campify.git'
             }
         }
 
