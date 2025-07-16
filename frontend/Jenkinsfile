@@ -50,25 +50,22 @@ pipeline {
             steps {
                 script {
                     def containerName = "campify-frontend"
-                    def networkName = "campify"
+                    def networkName = "campify-network"
+                    def imageTag = "${params.DOCKER_TAG}"
 
-                    // Create Docker network if not exists
+                    // Create network if it doesn't exist
+                    bat "docker network ls | findstr /I ${networkName} || docker network create ${networkName}"
+
+                    // Stop and remove container if it exists
                     bat """
-                        docker network ls | findstr /I "%networkName%" || docker network create %networkName%
+                        for /f %%i in ('docker ps -a -q --filter "name=${containerName}"') do (
+                            docker stop ${containerName}
+                            docker rm ${containerName}
+                        )
                     """
 
-                    // Stop and remove existing container if it exists
-                    bat """
-                        docker ps -a -q --filter "name=%containerName%" | findstr . && (
-                            docker stop %containerName%
-                            docker rm %containerName%
-                        ) || echo No existing container to remove
-                    """
-
-                    // Run new container
-                    bat """
-                        docker run -d --name %containerName% --network %networkName% -p 5000:5000 %Dockerhubuser%/campify-frontend:${params.DOCKER_TAG}
-                    """
+                    // Run the new container
+                    bat "docker run -d --name ${containerName} --network ${networkName} -p 3000:3000 %Dockerhubuser%/campify-frontend:${imageTag}"
                 }
             }
         }
