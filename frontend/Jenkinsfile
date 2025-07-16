@@ -1,50 +1,52 @@
-pipeline{
-    agent any 
+pipeline {
+    agent any
 
-    parameters{
-        string(name: "DOCKER_TAG", defaultValue: "latest", description: "Setting Docker Image for latest push")
-
+    parameters {
+        string(name: 'DOCKER_TAG', defaultValue: 'latest', description: 'Setting Docker Image tag for push')
     }
 
-    stages{
-        stage("Validate Parameters"){
-            steps{
-                script{
-                    if(params.DOCKER_TAG == " "){
-                        error("Docker tag must be provided")
+    stages {
+        stage('Validate Parameters') {
+            steps {
+                script {
+                    if (params.DOCKER_TAG.trim() == '') {
+                        error('Docker tag must be provided')
                     }
                 }
             }
-
         }
-        stage("code checkout"){
-            steps{
+
+        stage('Code Checkout') {
+            steps {
                 git branch: 'main', url: 'https://github.com/BeingAshu/Campify.git'
             }
         }
 
-        stage("Docker image build"){
-            steps{
-                dir("frontend"){
-                    sh "docker build -t frontend:${params.DOCKER_TAG} ."
+        stage('Docker Image Build') {
+            steps {
+                dir('frontend') {
+                    // Use double quotes here, escaping them inside the Groovy string
+                    bat "docker build -t frontend:${params.DOCKER_TAG} ."
                 }
             }
         }
 
-        stage("Docker Push to DockerHub"){
-            steps{
-                script{
-                    withCredentials(
-                        [usernamePassword(
-                            credentialsId:"dockerhub",
-                            passwordVariable:"Dockerhubpass",
-                            usernameVariable:"Dockerhubuser"
-                        )]
-                    )
-                    {
-                        sh "docker image tag frontend:${params.DOCKER_TAG} ${env.Dockerhubuser}/project-campify:${params.DOCKER_TAG}"
-                        sh "docker login -u ${env.Dockerhubuser} -p ${env.Dockerhubpass}"
-                        sh "docker push ${env.Dockerhubuser}/project-campify:${params.DOCKER_TAG}"
+        stage('Docker Push to DockerHub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub',
+                        usernameVariable: 'Dockerhubuser',
+                        passwordVariable: 'Dockerhubpass'
+                    )]) {
+                        // Tag image
+                        bat "docker image tag frontend:${params.DOCKER_TAG} %Dockerhubuser%/project-campify:${params.DOCKER_TAG}"
+
+                        // Login to DockerHub (password passed inline - less secure but Windows requires this)
+                        bat "docker login -u %Dockerhubuser% -p %Dockerhubpass%"
+
+                        // Push image
+                        bat "docker push %Dockerhubuser%/project-campify:${params.DOCKER_TAG}"
                     }
                 }
             }
