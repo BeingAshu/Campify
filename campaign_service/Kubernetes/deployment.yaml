@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: campify-camp-deployment
+  namespace: campify
+  labels:
+    app: campify-camp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: campify-camp
+  template:
+    metadata:
+      labels:
+        app: campify-camp
+    spec:
+      containers:
+      - name: camp
+        image: ashutoshjatale1/campify-campaign_service:v1
+        ports:
+        - containerPort: 5001
