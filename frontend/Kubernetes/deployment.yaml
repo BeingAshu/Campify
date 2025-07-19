@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: campify-frontend-deployment
+  namespace: campify
+  labels:
+    app: campify-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: campify-frontend
+  template:
+    metadata:
+      labels:
+        app: campify-frontend
+    spec:
+      containers:
+      - name: campify-frontend
+        image: ashutoshjatale1/campify-frontend:v1
+        ports:
+        - containerPort: 5000
