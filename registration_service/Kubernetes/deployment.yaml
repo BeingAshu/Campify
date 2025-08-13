@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: campify-reg-deployment
+  namespace: campify
+  labels:
+    app: campify-reg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: campify-reg
+  template:
+    metadata:
+      labels:
+        app: campify-reg
+    spec:
+      containers:
+      - name: reg
+        image: ashutoshjatale1/campify-registration_service:v1
+        ports:
+        - containerPort: 5002
